@@ -69,6 +69,7 @@ fn main() {
         file_name: &'static str,
         file_string: &'a str,
     }
+
     for f in [
         NewFile {
             file_name: ".gitignore",
@@ -97,4 +98,7 @@ fn main() {
         - if it ends in .mock.js or .test.js, then remove it without adding it to the main file
     }
     */
+    loop {
+        break;
+    }
 }
