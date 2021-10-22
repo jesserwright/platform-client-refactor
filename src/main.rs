@@ -1,4 +1,16 @@
-use std::{env, fs, fs::File, io::Write};
+use std::{
+    env,
+    fs::File,
+    fs::{self, read_to_string},
+    io::Write,
+    panic,
+    path::{self, Path, PathBuf},
+    slice::SliceIndex,
+};
+
+// conditional stepping via "stepping" buttons ("next"/"previous")
+// will require around 5,000 lines of code instead 100,000 (95% less code)
+// embeded system queries
 
 /*
 Goals
@@ -9,96 +21,98 @@ Goals
 - Remove all dependencies that are unused from package.json
 - Transpile jsx and alias "React.createElement" as "e"
 - Replace scss with tailwind
-
 - Remove top level directories DONE
 */
 
-// Take a look here: https://doc.rust-lang.org/std/fs/fn.read_dir.html
+// This could be a package called "flatten code"
 
-fn main() {
-    let mut args = env::args().collect::<Vec<String>>();
-    let repo_directory: &mut String = &mut args[1];
-    repo_directory.push_str("/");
-    let dirs_to_delete = [
-        ".githooks",
-        ".github",
-        ".husky",
-        ".loki",
-        ".storybook",
-        "codebuild",
-        "config",
-        "cypress",
-        "dependency-build",
-        "docs",
-    ];
-    for d in dirs_to_delete {
-        let mut path = repo_directory.to_owned();
-        path.push_str(d);
-        fs::remove_dir_all(path).unwrap();
+fn main() -> std::io::Result<()> {
+    let mut path_buff: PathBuf = env::args()
+        .collect::<Vec<String>>()
+        .get(1)
+        .expect("Expected repository path as argument")
+        .to_owned()
+        .into();
+
+    delete_dirs_and_files(&path_buff);
+    create_files(&path_buff);
+
+    let mut index_jsx: Vec<String> = Vec::new();
+
+    loop {
+        if path_buff.is_dir() {
+            for f in fs::read_dir(&path_buff)? {
+                let path = f?.path();
+                if path.is_dir() {
+                    path_buff.push(path);
+                }
+            }
+            // iterate through entries, push path if directory
+            // if there rae no entries, then pop path
+            // path_buff.push(p);
+        } else if path_buff.is_file() {
+            let file = fs::read_to_string(&path_buff)?;
+            //
+            index_jsx.push(file);
+        } else {
+            path_buff.pop();
+        }
+        // read all files that end in .jsx or .js and concat to src/index.jsx
+        // modify the source path as the directories are traversed
+        // if it is a file, read the contents and append to src/index.jsx
+        // if it is a directory, append the directory name to the src path and read entries of directory until
+        // `read_dir` returns an error
+        // anything that is .mock.js or .test.js or .stories.jsx remove
+        // any time a file is appended to the main file, write the src path at the top for reference
+        // all scss gets placed into a src/index.scss
+
+        // stop when the root dir is empty and equal to the original; then create the final output file
+        println!("{:?}", index_jsx);
     }
 
-    let files_to_delete = [
-        ".npmrc",
-        ".babelrc",
-        ".dockerignore",
-        ".eslintignore",
-        ".eslintrc.js",
-        ".stylelintignore",
-        ".stylelintrc",
-        "amplify.yml",
-        "cypress.json",
-        "initialize.sh",
-        "jsconfig.json",
-        "package-lock.json",
-        "README.md",
-        "server.amplify.js",
-        "server.dev.js",
-        "server.js",
-        "server.prodmode.js",
-        "vendor-packages.js",
-        "yarn-error.log",
-        ".prettierrc",
-        ".gitignore",
-    ];
-    for f in files_to_delete {
-        let mut path = repo_directory.to_owned();
-        path.push_str(f);
-        fs::remove_file(path).unwrap();
-    }
-    struct NewFile<'a> {
-        file_name: &'static str,
-        file_string: &'a str,
-    }
+    Ok(())
+}
 
+// Delete files and directories
+fn delete_dirs_and_files(root_path: &Path) -> std::io::Result<()> {
+    let path_buff: PathBuf = root_path.into();
+    for file_name in include_str!("to_delete.txt").lines() {
+        path_buff.push(Path::new(file_name));
+        if path_buff.exists() {
+            let meta = fs::metadata(&path_buff).expect("Failed to find meta");
+            if meta.is_dir() {
+                fs::remove_dir_all(&path_buff)?;
+            }
+            if meta.is_file() {
+                fs::remove_file(&path_buff)?;
+            }
+        }
+        path_buff.pop();
+    }
+    return Ok(());
+}
+
+struct NewFile<'a> {
+    file_name: &'a str,
+    file_str: &'a str,
+}
+fn create_files(path: &Path) -> std::io::Result<()> {
+    let path_buff: PathBuf = path.into();
     for f in [
         NewFile {
             file_name: ".gitignore",
-            file_string: include_str!("./files/.gitignore"),
+            file_str: include_str!("./files_to_create/.gitignore"),
         },
         NewFile {
             file_name: ".prettierrc",
-            file_string: include_str!("./files/.prettierrc"),
+            file_str: include_str!("./files_to_create/.prettierrc"),
         },
     ] {
-        let mut path = repo_directory.to_owned();
-        path.push_str(f.file_name);
-        let fd_result = File::create(path);
-        if let Ok(mut fd) = fd_result {
-            fd.write_all(f.file_string.as_bytes()).unwrap();
-        }
+        path_buff.push(&f.file_name);
+        let mut fd = File::create(&path_buff).expect("Failed to create file");
+        fd.write_all(f.file_str.as_bytes())
+            .expect("Failed to write to file");
+        path_buff.pop();
     }
-
-    /*
-    cd src
-    while [directories] {
-        - open directory
-        - any contents with .js or .jsx ending is read and appended to the index.jsx file
-        - any file with .scss place into yet another file
-        - delete file when done
-        - if it ends in .mock.js or .test.js, then remove it without adding it to the main file
-    }
-    */
-    loop {
-        break;
-    }
+    Ok(())
 }

@@ -29,3 +29,4 @@ vendor-packages.js
 yarn-error.log
 .prettierrc
 .gitignore
+node_modules
