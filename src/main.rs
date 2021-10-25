@@ -1,16 +1,12 @@
 use std::{
     env, fs,
-    fs::{DirEntry, File},
+    fs::File,
     io::Write,
     path::{Path, PathBuf},
 };
 
-/*
-
-*/
-
 fn main() -> std::io::Result<()> {
-    let mut path_buff: PathBuf = env::args()
+    let path_buff: PathBuf = env::args()
         .collect::<Vec<String>>()
         .get(1)
         .expect("Expected repository path as argument")
@@ -18,9 +14,16 @@ fn main() -> std::io::Result<()> {
         .into();
 
     let mut index_buf = String::new();
-    visit_dirs(&path_buff, &mut &mut index_buf)?;
-
+    let patterns = vec![".js", ".jsx"];
+    let patterns_not = vec![".test.js", ".stories.js", ".stories.jsx"]; // stories?
+    visit_dirs(&path_buff, &mut index_buf, &patterns, &patterns_not)?;
     let mut fd = File::create("index.jsx")?;
+    fd.write_all(index_buf.as_bytes())?;
+
+    let mut index_buf = String::new();
+    let patterns = vec![".scss"];
+    visit_dirs(&path_buff, &mut index_buf, &patterns, &[].into())?;
+    let mut fd = File::create("index.scss")?;
     fd.write_all(index_buf.as_bytes())?;
 
     // delete_dirs_and_files(&path_buff)?;
@@ -52,6 +55,8 @@ struct NewFile<'a> {
     file_name: &'a str,
     file_str: &'a str,
 }
+
+// TODO: move this to one file, or inline it as a raw string.
 fn create_files(path: &Path) -> std::io::Result<()> {
     let mut path_buff: PathBuf = path.into();
     for f in [
@@ -73,13 +78,18 @@ fn create_files(path: &Path) -> std::io::Result<()> {
     Ok(())
 }
 
-fn visit_dirs(dir: &Path, buff: &mut String) -> std::io::Result<()> {
+fn visit_dirs(
+    dir: &Path,
+    buff: &mut String,
+    patterns: &Vec<&str>,
+    patterns_not: &Vec<&str>,
+) -> std::io::Result<()> {
     if dir.is_dir() {
         for entry in fs::read_dir(dir)? {
             let entry = entry?;
             let path = entry.path();
             if path.is_dir() {
-                visit_dirs(&path, buff)?;
+                visit_dirs(&path, buff, &patterns, &patterns_not)?;
             } else {
                 if let Some(file_name) = entry.file_name().to_str() {
                     // write file name
@@ -87,9 +97,18 @@ fn visit_dirs(dir: &Path, buff: &mut String) -> std::io::Result<()> {
                     // scss
                     // imports and exports
                     // remove all tests
-                    if file_name.ends_with(".js") || file_name.ends_with(".jsx") {
-                        let s = fs::read_to_string(path)?;
-                        buff.push_str(&s);
+                    if let Some(_) = patterns_not
+                        .iter()
+                        .find(|&pat_not| -> bool { file_name.ends_with(pat_not) })
+                    {
+                        // skip the file
+                        continue;
+                    };
+                    for pat in patterns {
+                        if file_name.ends_with(pat) {
+                            let s = fs::read_to_string(&path)?;
+                            buff.push_str(&s);
+                        }
                     }
                 }
             }
