@@ -1,30 +1,13 @@
 use std::{
-    env,
-    fs::File,
-    fs::{self, read_to_string},
+    env, fs,
+    fs::{DirEntry, File},
     io::Write,
-    panic,
-    path::{self, Path, PathBuf},
-    slice::SliceIndex,
+    path::{Path, PathBuf},
 };
 
-// conditional stepping via "stepping" buttons ("next"/"previous")
-// will require around 5,000 lines of code instead 100,000 (95% less code)
-// embeded system queries
-
 /*
-Goals
-- Do code mods without touching the business logic
-- Move to parcel
-- Move everything that is JS to one file, then reduce from there
-- Copy new files using include_str!()
-- Remove all dependencies that are unused from package.json
-- Transpile jsx and alias "React.createElement" as "e"
-- Replace scss with tailwind
-- Remove top level directories DONE
-*/
 
-// This could be a package called "flatten code"
+*/
 
 fn main() -> std::io::Result<()> {
     let mut path_buff: PathBuf = env::args()
@@ -34,48 +17,21 @@ fn main() -> std::io::Result<()> {
         .to_owned()
         .into();
 
-    delete_dirs_and_files(&path_buff);
-    create_files(&path_buff);
+    let mut index_buf = String::new();
+    visit_dirs(&path_buff, &mut &mut index_buf)?;
 
-    let mut index_jsx: Vec<String> = Vec::new();
+    let mut fd = File::create("index.jsx")?;
+    fd.write_all(index_buf.as_bytes())?;
 
-    loop {
-        if path_buff.is_dir() {
-            for f in fs::read_dir(&path_buff)? {
-                let path = f?.path();
-                if path.is_dir() {
-                    path_buff.push(path);
-                }
-            }
-            // iterate through entries, push path if directory
-            // if there rae no entries, then pop path
-            // path_buff.push(p);
-        } else if path_buff.is_file() {
-            let file = fs::read_to_string(&path_buff)?;
-            //
-            index_jsx.push(file);
-        } else {
-            path_buff.pop();
-        }
-        // read all files that end in .jsx or .js and concat to src/index.jsx
-        // modify the source path as the directories are traversed
-        // if it is a file, read the contents and append to src/index.jsx
-        // if it is a directory, append the directory name to the src path and read entries of directory until
-        // `read_dir` returns an error
-        // anything that is .mock.js or .test.js or .stories.jsx remove
-        // any time a file is appended to the main file, write the src path at the top for reference
-        // all scss gets placed into a src/index.scss
-
-        // stop when the root dir is empty and equal to the original; then create the final output file
-        println!("{:?}", index_jsx);
-    }
+    // delete_dirs_and_files(&path_buff)?;
+    // create_files(&path_buff)?;
 
     Ok(())
 }
 
 // Delete files and directories
 fn delete_dirs_and_files(root_path: &Path) -> std::io::Result<()> {
-    let path_buff: PathBuf = root_path.into();
+    let mut path_buff: PathBuf = root_path.into();
     for file_name in include_str!("to_delete.txt").lines() {
         path_buff.push(Path::new(file_name));
         if path_buff.exists() {
@@ -97,7 +53,7 @@ struct NewFile<'a> {
     file_str: &'a str,
 }
 fn create_files(path: &Path) -> std::io::Result<()> {
-    let path_buff: PathBuf = path.into();
+    let mut path_buff: PathBuf = path.into();
     for f in [
         NewFile {
             file_name: ".gitignore",
@@ -113,6 +69,31 @@ fn create_files(path: &Path) -> std::io::Result<()> {
         fd.write_all(f.file_str.as_bytes())
             .expect("Failed to write to file");
         path_buff.pop();
+    }
+    Ok(())
+}
+
+fn visit_dirs(dir: &Path, buff: &mut String) -> std::io::Result<()> {
+    if dir.is_dir() {
+        for entry in fs::read_dir(dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_dir() {
+                visit_dirs(&path, buff)?;
+            } else {
+                if let Some(file_name) = entry.file_name().to_str() {
+                    // write file name
+                    // translations
+                    // scss
+                    // imports and exports
+                    // remove all tests
+                    if file_name.ends_with(".js") || file_name.ends_with(".jsx") {
+                        let s = fs::read_to_string(path)?;
+                        buff.push_str(&s);
+                    }
+                }
+            }
+        }
     }
     Ok(())
 }
