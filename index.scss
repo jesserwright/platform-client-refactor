@@ -6111,90 +6111,90 @@ body {
 :root {
   // Figma Tokens
   // Text
-  --text-primary-default: $primary-600;
+  --text-primary-default: #{$primary-600};
 
-  --text-primary-disabled: $cool-neutral-400;
-  --text-primary-default-on-dark: $base-white;
+  --text-primary-disabled: #{$cool-neutral-400};
+  --text-primary-default-on-dark: #{$base-white};
 
-  --text-secondary-default: $cool-neutral-500;
+  --text-secondary-default: #{$cool-neutral-500};
 
-  --text-tertiary-default: $cool-neutral-400;
+  --text-tertiary-default: #{$cool-neutral-400};
 
-  --text-placeholder-default: $new-neutral-400;
-  --text-critical-default: $critical-300;
-  --text-critical-hover: $critical-400;
-  --text-critical-pressed: $critical-500;
+  --text-placeholder-default: #{$new-neutral-400};
+  --text-critical-default: #{$critical-300};
+  --text-critical-hover: #{$critical-400};
+  --text-critical-pressed: #{$critical-500};
 
-  --text-critical-disabled-on-dark: $critical-50;
+  --text-critical-disabled-on-dark: #{$critical-50};
 
-  --text-interactive-default: $blue-400;
-  --text-interactive-hover: $blue-450;
-  --text-interactive-pressed: $blue-500;
+  --text-interactive-default: #{$blue-400};
+  --text-interactive-hover: #{$blue-450};
+  --text-interactive-pressed: #{$blue-500};
 
   // Icons
-  --icon-primary-default: $new-neutral-400;
-  --icon-primary-disabled: $cool-neutral-125;
-  --icon-primary-default-on-dark: $cool-neutral-0;
+  --icon-primary-default: #{$new-neutral-400};
+  --icon-primary-disabled: #{$cool-neutral-125};
+  --icon-primary-default-on-dark: #{$cool-neutral-0};
 
-  --icon-secondary-default: $cool-neutral-200;
+  --icon-secondary-default: #{$cool-neutral-200};
 
-  --icon-interactive-default: $blue-200;
-  --icon-success-default: $success-100;
-  --icon-warning-default: $warning-200;
-  --icon-critical-default: $critical-200;
+  --icon-interactive-default: #{$blue-200};
+  --icon-success-default: #{$success-100};
+  --icon-warning-default: #{$warning-200};
+  --icon-critical-default: #{$critical-200};
 
   // Button
-  --button-primary-default: $primary-550;
-  --button-primary-hover: $cool-neutral-550;
-  --button-primary-pressed: $new-neutral-400;
-  --button-primary-disabled: $cool-neutral-50;
+  --button-primary-default: #{$primary-550};
+  --button-primary-hover: #{$cool-neutral-550};
+  --button-primary-pressed: #{$new-neutral-400};
+  --button-primary-disabled: #{$cool-neutral-50};
 
-  --button-secondary-default: $base-white;
-  --button-secondary-hover: $new-neutral-25;
-  --button-secondary-pressed: $new-neutral-100;
-  --button-secondary-disabled: $new-neutral-100;
+  --button-secondary-default: #{$base-white};
+  --button-secondary-hover: #{$new-neutral-25};
+  --button-secondary-pressed: #{$new-neutral-100};
+  --button-secondary-disabled: #{$new-neutral-100};
 
-  --button-critical-default: $critical-300;
-  --button-critical-hover: $critial-200;
-  --button-critical-pressed: $critical-400;
-  --button-critical-disabled: $cool-neutral-25;
+  --button-critical-default: #{$critical-300};
+  --button-critical-hover: #{$critical-200};
+  --button-critical-pressed: #{$critical-400};
+  --button-critical-disabled: #{$cool-neutral-25};
 
   // Background
 
-  --background-ui-01-default: $base-white;
-  --background-ui-02-default: $new-neutral-5;
-  --background-ui-03-default: $new-neutral-25;
+  --background-ui-01-default: #{$base-white};
+  --background-ui-02-default: #{$new-neutral-5};
+  --background-ui-03-default: #{$new-neutral-25};
 
-  --background-element-01-default: $base-white;
-  --background-element-01-hover: $new-neutral-5;
-  --background-element-01-disabled: $new-neutral-5;
+  --background-element-01-default: #{$base-white};
+  --background-element-01-hover: #{$new-neutral-5};
+  --background-element-01-disabled: #{$new-neutral-5};
 
-  --background-element-02-default: $new-neutral-50;
-  --background-element-02-disabled: $new-neutral-100;
+  --background-element-02-default: #{$new-neutral-5}0;
+  --background-element-02-disabled: #{$new-neutral-100};
 
-  --background-element-03-default: $new-neutral-200;
-  --background-element-03-disabled: $new-neutral-100;
+  --background-element-03-default: #{$new-neutral-200};
+  --background-element-03-disabled: #{$new-neutral-100};
 
-  --background-selected: $blue-25;
-  --background-success: $success-25;
-  --background-warning: $warning-50;
-  --background-critical: $critical-50;
+  --background-selected: #{$blue-25};
+  --background-success: #{$success-25};
+  --background-warning: #{$warning-50};
+  --background-critical: #{$critical-50};
 
-  --background-interactive-default: $blue-400;
-  --background-interactive-hover: $blue-350;
-  --background-interactive-disabled: $primary-500;
+  --background-interactive-default: #{$blue-400};
+  --background-interactive-hover: #{$blue-350};
+  --background-interactive-disabled: #{$primary-500};
 
   // Border
-  --border-primary-default: $new-neutral-200;
-  --border-primary-disabled: $new-neutral-100;
+  --border-primary-default: #{$new-neutral-200};
+  --border-primary-disabled: #{$new-neutral-100};
 
-  --border-secondary-default: $new-neutral-150;
+  --border-secondary-default: #{$new-neutral-150};
 
-  --border-interactive-default: $blue-300;
-  --border-interactive-disabled: $primary-500;
-  --border-success-default: $success-100;
-  --border-critical-default: $critical-200;
-  --border-focus: $blue-300;
+  --border-interactive-default: #{$blue-300};
+  --border-interactive-disabled: #{$primary-500};
+  --border-success-default: #{$success-100};
+  --border-critical-default: #{$critical-200};
+  --border-focus: #{$blue-300};
 
   // Top level z-index value hierarchy
   --zindex-dropdown: 1000;
@@ -6439,6 +6439,7 @@ $cool-neutral-200: #adb8bc;
 $cool-neutral-300: #8b979c;
 $cool-neutral-400: #6c777c;
 $cool-neutral-500: #4f585c;
+$cool-neutral-550: #4f585c;
 $cool-neutral-600: #33393c;
 $cool-neutral-700: #181b1c;
 

@@ -13,6 +13,9 @@ fn main() -> std::io::Result<()> {
         .to_owned()
         .into();
 
+    // Before deleting, append 'vendor-packages.js' to package.json (for fixup later)
+    // Do not delete 
+
     let mut index_buf = String::new();
     let patterns = vec![".js", ".jsx"];
     let patterns_not = vec![".test.js", ".stories.js", ".stories.jsx"]; // stories?
@@ -26,8 +29,8 @@ fn main() -> std::io::Result<()> {
     let mut fd = File::create("index.scss")?;
     fd.write_all(index_buf.as_bytes())?;
 
-    // delete_dirs_and_files(&path_buff)?;
-    // create_files(&path_buff)?;
+    delete_dirs_and_files(&path_buff)?;
+    create_files(&path_buff)?;
 
     Ok(())
 }
