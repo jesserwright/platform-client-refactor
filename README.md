@@ -1,28 +1,39 @@
-lines in index.jsx: 165399 - 155796
-
 # Goals
-- Improve source code clarity, correctness, performance, robustness, modifiability, and security
-- Reduce dependencies, and duplication.
-- Reduce Lines Of Code (LOC) by 50% (10% styled components, 10% function duplication, 10% mocks/tests, 10% SCSS, 10% barrel files / "commented out" code blocks / dead code)
+- Improve source code clarity, correctness, performance, robustness, modifiability, and security.
+- Reduce dependencies (npm packages).
+- Reduce repository content by 50% - 20% unneeded documentation and configuration and Lines Of Code (LOC) by 30% (10% styled components, 5% function duplication, 5% mocks/tests, 10% barrel files / "commented out" code blocks / dead code)
+
+# Strategy
+- We consider the value and costs involved.
+- We evaluate the return on investment.
+- We clarify what we mean by the term Technical Debt as related to long term outcomes
+- We do "surgery" to the code - we "put it under" (the code does not run for a period of time), and there is calculated risk involved in the process. The problems are deemed serious enough to warrant this risk.
+- We plan ahead what steps we will take during this period, and execute quickly and carefully in the defined time set.
+- We look forward to a more positive state at the other side of the process.
+- When complete, we assess what was done well and what could have been done better, and if this strategy can be replicated in other parts of the organization.
+- Ongoing improvement is maintained going forward. Changes should be continuous and gradual rather than abrupt.
+
+- (in ROI consideration, there are risks and advantages associated with every improvement)
 
 # Process methods
-- Do code mods without touching the business logic
+- Do code modifications without touching the business logic
 - Do code transforms programmatically if possible
-- Make use of tools to refactor automatically when possible
+- Make use of editor tools and extensions to refactor automatically when possible
 
 # Reorganize source, delete unneeded code and documentation
 - Remove top level directories that are not a part of source code
 - Move everything that is js or jsx to one file, and all .scss into one file, with the "src/" path at "top" of every file for reference
 - Move translations to top level src directory
-- Remove all: mocks, tests, .stories (storybook), cypress tests (mostly can be done by skipping files when reading)
+- Remove all: mocks, tests, .stories (storybook), cypress tests
 - Remove all import and export statements that are not npm dependencies (they should be available in the file scope, since the whole FE is one file)
+- Remove all babel and webpack dependencies
 
-# Compile on new stack
-- Install to Parcel bundler, pnpm
+# Compile
+- Install Parcel bundler (or similar minimal-config bundler; Snowpack)
 - Make the code compile - fix runtime errors
 
 # Code quality improvements
-- Remove all commented out code blocks
+- Remove all commented out code blocks (intentionally dead code)
 - Remove some JSDoc comments if they are verbose or not helpful
 - Remove all dependencies that are unused from package.json
 - Update all dependencies (to latest major versions, including breaking changes)
@@ -30,12 +41,12 @@ lines in index.jsx: 165399 - 155796
 - Remove all console.log() statements
 
 # New libraries
-- Tailwind CSS
 - TypeScript
+- Tailwind CSS
 - UUID (proper random ID generation)
 
 # Libraries to remove
-- Styled components
+- Styled components (use Tailwind)
 - Redux (use React.Context)
 - RxJS (use React.Context)
 - PropTypes (use TypeScript)
@@ -63,14 +74,14 @@ lines in index.jsx: 165399 - 155796
 
 # Programming Standards
 - Avoid regex and string-type programming
-- Only store config externally
+- Only store configuration externally (.env files)
 - Avoid creating new functions and components unless they are being reused. "Breaking things down" does not help, unless it is for reuse.
 - Avoid null and undefined
 
 # Timeline and distribution of work
 - 3 weeks of development freeze in December
+- Work is distributed by technical domain rather than feature domain - improvements are made wholesale across code base rather than per-feature area. Risk is mitigated my code review (reviewer must have a strong understanding of what may cause a breaking change.)
 
 # Idea, Questions
-- Use render props for reusable query component? (to avoid many duplicate error/loading states)
-- useReducer() for more complex local state instead of many useState() calls
+- Create a global solution for error/success/loading states unlike the current redux actions that have those states duplicated. (research the use of https://github.com/tc39/proposal-error-cause paired with React error boundaries for catching errors at a high level while retaining error info)
 - Centralize and deduplicate networking code

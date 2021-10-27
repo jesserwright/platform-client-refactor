@@ -31,3 +31,5 @@ yarn-error.log
 .prettierrc
 .gitignore
 node_modules
+src
+package.json

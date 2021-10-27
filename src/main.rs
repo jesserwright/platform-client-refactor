@@ -1,47 +1,96 @@
 use std::{
-    env, fs,
+    env,
+    ffi::OsString,
+    fs,
     fs::File,
     io::Write,
     path::{Path, PathBuf},
 };
 
 fn main() -> std::io::Result<()> {
-    let path_buff: PathBuf = env::args()
+    let repo_path: PathBuf = env::args()
         .collect::<Vec<String>>()
         .get(1)
-        .expect("Expected repository path as argument")
+        .expect("Path argument needed")
         .to_owned()
         .into();
 
-    // Before deleting, append 'vendor-packages.js' to package.json (for fixup later)
-    // Do not delete 
+    // .js files in source to delete *before* visiting
+    fs::remove_dir_all(&repo_path.join("src/test-utils"))?;
 
-    let mut index_buf = String::new();
+    // Loading source into memory
+
+    // package.json
+    let vendor_packages = fs::read_to_string(repo_path.join("vendor-packages.js"))?;
+    let mut package_json = fs::read_to_string(repo_path.join("package.json"))?;
+    package_json.push_str(&vendor_packages);
+
+    // js / jsx
+    let mut js_buff = String::new();
     let patterns = vec![".js", ".jsx"];
-    let patterns_not = vec![".test.js", ".stories.js", ".stories.jsx"]; // stories?
-    visit_dirs(&path_buff, &mut index_buf, &patterns, &patterns_not)?;
-    let mut fd = File::create("index.jsx")?;
-    fd.write_all(index_buf.as_bytes())?;
+    let patterns_not = vec![".test.js", ".stories.js", ".stories.jsx"];
+    visit_dirs(
+        &repo_path.join("src"),
+        &mut js_buff,
+        &patterns,
+        &patterns_not,
+    )?;
 
-    let mut index_buf = String::new();
+    let mut scss_buff = String::new();
     let patterns = vec![".scss"];
-    visit_dirs(&path_buff, &mut index_buf, &patterns, &[].into())?;
-    let mut fd = File::create("index.scss")?;
-    fd.write_all(index_buf.as_bytes())?;
+    visit_dirs(
+        &repo_path.join("src"),
+        &mut scss_buff,
+        &patterns,
+        &[].into(),
+    )?;
 
-    delete_dirs_and_files(&path_buff)?;
-    create_files(&path_buff)?;
+    struct MyFile {
+        name: OsString,
+        body: String,
+    }
+    let mut translations_files: Vec<MyFile> = Vec::new();
+
+    let translations_dir = repo_path.join("src/translations");
+    for entry in fs::read_dir(&translations_dir)? {
+        let entry = entry?;
+        let path = entry.path();
+        let translation_file = fs::read_to_string(path)?;
+        translations_files.push(MyFile {
+            body: translation_file,
+            name: entry.file_name(),
+        });
+    }
+
+    // Deletion
+    delete_dirs_and_files(&repo_path)?;
+
+    // Creation
+    fs::create_dir_all(&translations_dir)?;
+    for f in translations_files {
+        let mut fd = File::create(translations_dir.join(f.name))?;
+        fd.write_all(f.body.as_bytes())?;
+    }
+
+    create_files(&repo_path)?;
+
+    let mut fd = File::create(repo_path.join("src/index.jsx"))?;
+    fd.write_all(js_buff.as_bytes())?;
+    let mut fd = File::create(repo_path.join("src/index.scss"))?;
+    fd.write_all(scss_buff.as_bytes())?;
+
+    let mut fd = File::create(repo_path.join("package.json"))?;
+    fd.write_all(package_json.as_bytes())?;
 
     Ok(())
 }
 
-// Delete files and directories
 fn delete_dirs_and_files(root_path: &Path) -> std::io::Result<()> {
     let mut path_buff: PathBuf = root_path.into();
     for file_name in include_str!("to_delete.txt").lines() {
         path_buff.push(Path::new(file_name));
         if path_buff.exists() {
-            let meta = fs::metadata(&path_buff).expect("Failed to find meta");
+            let meta = fs::metadata(&path_buff)?;
             if meta.is_dir() {
                 fs::remove_dir_all(&path_buff)?;
             }
@@ -54,28 +103,15 @@ fn delete_dirs_and_files(root_path: &Path) -> std::io::Result<()> {
     return Ok(());
 }
 
-struct NewFile<'a> {
-    file_name: &'a str,
-    file_str: &'a str,
-}
-
-// TODO: move this to one file, or inline it as a raw string.
 fn create_files(path: &Path) -> std::io::Result<()> {
     let mut path_buff: PathBuf = path.into();
-    for f in [
-        NewFile {
-            file_name: ".gitignore",
-            file_str: include_str!("./files_to_create/.gitignore"),
-        },
-        NewFile {
-            file_name: ".prettierrc",
-            file_str: include_str!("./files_to_create/.prettierrc"),
-        },
+    for (file_name, file_str) in [
+        (".gitignore", include_str!("./files_to_create/.gitignore")),
+        (".prettierrc", include_str!("./files_to_create/.prettierrc")),
     ] {
-        path_buff.push(&f.file_name);
-        let mut fd = File::create(&path_buff).expect("Failed to create file");
-        fd.write_all(f.file_str.as_bytes())
-            .expect("Failed to write to file");
+        path_buff.push(&file_name);
+        let mut fd = File::create(&path_buff)?;
+        fd.write_all(file_str.as_bytes())?;
         path_buff.pop();
     }
     Ok(())
@@ -110,6 +146,30 @@ fn visit_dirs(
                     for pat in patterns {
                         if file_name.ends_with(pat) {
                             let s = fs::read_to_string(&path)?;
+                            let components: Vec<_> =
+                                path.components().map(|comp| comp.as_os_str()).collect();
+                            let mut is_in_repo = false;
+                            let mut new_path: Vec<_> = Vec::new();
+                            for comp in components {
+                                if comp == "platform-client" {
+                                    is_in_repo = true
+                                }
+                                if is_in_repo {
+                                    new_path.push(comp);
+                                }
+                            }
+
+                            buff.push('\n');
+                            buff.push_str("// "); // comment the path
+                            buff.push_str(
+                                new_path
+                                    .iter()
+                                    .collect::<PathBuf>()
+                                    .as_path()
+                                    .to_str()
+                                    .unwrap(),
+                            );
+                            buff.push('\n');
                             buff.push_str(&s);
                         }
                     }
