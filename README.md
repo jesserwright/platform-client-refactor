@@ -1,7 +1,9 @@
 # Goals
 - Improve source code clarity, correctness, performance, robustness, modifiability, and security.
 - Reduce dependencies (npm packages).
-- Reduce repository content by 50% - 20% unneeded documentation and configuration and Lines Of Code (LOC) by 30% (10% styled components, 5% function duplication, 5% mocks/tests, 10% barrel files / "commented out" code blocks / dead code)
+- Reduce repository content by 50%:
+    - 20% unneeded documentation and configuration
+    - 30% lines of code (10% styled components, 5% function duplication, 5% mocks/tests, 10% barrel files / "commented out" code blocks / dead code)
 
 # Strategy
 - We consider the value and costs involved.
@@ -12,8 +14,7 @@
 - We look forward to a more positive state at the other side of the process.
 - When complete, we assess what was done well and what could have been done better, and if this strategy can be replicated in other parts of the organization.
 - Ongoing improvement is maintained going forward. Changes should be continuous and gradual rather than abrupt.
-
-- (in ROI consideration, there are risks and advantages associated with every improvement)
+- In ROI consideration, there are risks and advantages associated with each improvement)
 
 # Process methods
 - Do code modifications without touching the business logic
